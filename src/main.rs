@@ -1,4 +1,6 @@
+use std::env;
 use std::io::*;
+use std::path::Path;
 use std::process::Command;
 
 const RED: &str = "\x1b[31m";
@@ -18,16 +20,25 @@ fn main() {
         let command = parts.next().unwrap();
         let args = parts;
 
-        if command == "exit" {
-            return;
-        }
-
-        let child = Command::new(command).args(args).spawn();
-        if let Err(i) = child {
-            eprintln!("Unkown command -> {}", i);
-            continue;
-        } else {
-            child.unwrap().wait().unwrap();
+        match command {
+            "cd" => {
+                // default to `/` as new directory if one was not provided
+                let new_dir = args.peekable().peek().map_or("/", |x| *x);
+                let root = Path::new(new_dir);
+                if let Err(e) = env::set_current_dir(&root) {
+                    eprintln!("{}", e);
+                }
+            }
+            "exit" => return,
+            _ => {
+                let child = Command::new(command).args(args).spawn();
+                if let Err(e) = child {
+                    eprintln!("Unkown command -> {}", e);
+                    continue;
+                } else {
+                    child.unwrap().wait().unwrap();
+                }
+            }
         }
     }
 }
