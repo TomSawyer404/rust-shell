@@ -34,9 +34,8 @@ fn main() {
                 let child = Command::new(command).args(args).spawn();
                 if let Err(e) = child {
                     eprintln!("Unkown command -> {}", e);
-                    continue;
                 } else {
-                    child.unwrap().wait().unwrap();
+                    child.unwrap().wait().expect("child process error!");
                 }
             }
         }
